@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSX to PPTX Converter</title>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 50px; text-align: center; background-color: #f4f7f6; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; }
+        button { background-color: #3B82F6; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:disabled { background-color: #ccc; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>TSX to PPTX Converter</h1>
+    <p>Select a .tsx file to convert its structure to a PowerPoint deck.</p>
+    <input type="file" id="fileInput" accept=".tsx">
+    <br><br>
+    <button id="convertBtn" disabled>Download PowerPoint (.pptx)</button>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const convertBtn = document.getElementById('convertBtn');
+    let fileContent = "";
+    let fileName = "";
+
+    // Read the file without any backend or NPM packages
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            fileName = file.name;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                fileContent = event.target.result;
+                convertBtn.disabled = false;
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    convertBtn.addEventListener('click', () => {
+        // Create a new PowerPoint instance
+        let pres = new PptxGenJS();
+
+        // Slide 1: Title Slide
+        let slide1 = pres.addSlide();
+        slide1.addText("TSX Source Code Structure", { x: 1, y: 1, fontSize: 32, color: "3B82F6", bold: true });
+        slide1.addText(`Extracted from: ${fileName}`, { x: 1, y: 2, fontSize: 18 });
+
+        // Logic: Scan TSX for "const", "function", or "interface" to create slides
+        const lines = fileContent.split('\n');
+        lines.forEach(line => {
+            if (line.includes('export const') || line.includes('function') || line.includes('interface')) {
+                let newSlide = pres.addSlide();
+                // Header for the slide
+                newSlide.addText("Component/Logic Definition", { x: 0.5, y: 0.5, fontSize: 14, color: "9333EA" });
+                // Content of the line
+                newSlide.addText(line.trim(), { x: 0.5, y: 1.5, w: 9, h: 2, fontSize: 24, bold: true });
+            }
+        });
+
+        // Trigger Download
+        pres.writeFile({ fileName: fileName.replace('.tsx', '') + "_Presentation" });
+    });
+</script>
+
+</body>
+</html>
